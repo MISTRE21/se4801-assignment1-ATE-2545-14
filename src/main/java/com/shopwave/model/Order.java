@@ -1,3 +1,4 @@
+//ATE/2545/14
 package com.shopwave.model;
 
 import jakarta.persistence.*;
