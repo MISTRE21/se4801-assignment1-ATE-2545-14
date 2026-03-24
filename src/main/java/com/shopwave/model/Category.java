@@ -1,7 +1,6 @@
 //ATE/2545/14
 package com.shopwave.model;
 
-
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
