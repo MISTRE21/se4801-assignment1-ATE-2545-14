@@ -17,7 +17,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Transactional
@@ -57,35 +59,61 @@ public class ProductServiceImpl implements ProductService {
     @Transactional(readOnly = true)
     public ProductDTO getProductById(Long id) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ProductNotFoundException(""));
+                .orElseThrow(() -> new ProductNotFoundException(id));
         return productMapper.toDTO(product);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ProductDTO> searchProducts(String keyword, BigDecimal maxPrice) {
+        boolean hasKeyword = keyword != null && !keyword.isBlank();
+        boolean hasMaxPrice = maxPrice != null;
 
-        List<Product> products = productRepository
-                .findByNameContainingIgnoreCase(keyword);
+        if (hasKeyword && hasMaxPrice) {
+            Map<Long, Product> filtered = new LinkedHashMap<>();
 
-        return products.stream()
-                .filter(product -> product.getPrice().compareTo(maxPrice) <= 0)
-                .map(productMapper::toDTO)
-                .toList();
+            productRepository.findByNameContainingIgnoreCase(keyword)
+                    .stream()
+                    .filter(p -> p.getPrice() != null && p.getPrice().compareTo(maxPrice) <= 0)
+                    .forEach(p -> filtered.put(p.getId(), p));
+
+            return filtered.values().stream()
+                    .map(productMapper::toDTO)
+                    .toList();
+        }
+
+        if (hasKeyword) {
+            return productRepository.findByNameContainingIgnoreCase(keyword)
+                    .stream()
+                    .map(productMapper::toDTO)
+                    .toList();
+        }
+
+        if (hasMaxPrice) {
+            return productRepository.findByPriceLessThanEqual(maxPrice)
+                    .stream()
+                    .map(productMapper::toDTO)
+                    .toList();
+        }
+
+        return List.of();
     }
 
     @Override
     public ProductDTO updateStock(Long id, int delta) {
         Product product = productRepository.findById(id)
-                .orElseThrow();
-        int newStock = product.getStock() + delta;
+                .orElseThrow(() -> new ProductNotFoundException(id));
 
-        if (newStock < 0) {
-            throw new IllegalArgumentException("Stock cannot be negative");
+        int currentStock = product.getStock() == null ? 0 : product.getStock();
+        int finalStock = currentStock + delta;
+
+        if (finalStock < 0) {
+            throw new IllegalArgumentException(
+                    "Stock cannot go negative. Current stock: " + currentStock + ", delta: " + delta
+            );
         }
-        product.setStock(newStock);
-        return productMapper.toDTO(product);
+
+        product.setStock(finalStock);
+        return productMapper.toDTO(productRepository.save(product));
     }
-
-
 }
