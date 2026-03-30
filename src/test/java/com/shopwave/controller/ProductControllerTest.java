@@ -3,6 +3,7 @@
 package com.shopwave.controller;
 
 import com.shopwave.Controller.ProductController;
+import com.shopwave.Exception.GlobalExceptionHandler;
 import com.shopwave.Exception.ProductNotFoundException;
 import com.shopwave.dto.ProductDTO;
 import com.shopwave.service.ProductService;

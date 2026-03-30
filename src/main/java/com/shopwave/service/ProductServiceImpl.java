@@ -35,7 +35,9 @@ public class ProductServiceImpl implements ProductService {
     public ProductDTO createProduct(CreateProductRequest request) {
 
         Category category = categoryRepository.findById(request.getCategoryId())
-                .orElseThrow(() -> new EntityNotFoundException("Category not found"));
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Category not found with id: " + request.getCategoryId()
+                ));
 
         Product product = Product.builder()
                 .name(request.getName())
