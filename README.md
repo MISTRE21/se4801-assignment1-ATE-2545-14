@@ -38,8 +38,6 @@ mvn -version
 ### 3. Clone or Download the Project
 If using Git:
 git clone https://github.com/MISTRE21/se4801-assignment1-ATE-2545-14.git
-cd <project-folder>
-
 
 If you downloaded the ZIP file, extract it and open the project folder in a terminal.
 
